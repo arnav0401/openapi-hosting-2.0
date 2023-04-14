@@ -1,0 +1,1024 @@
+---
+openapi: 3.0.0
+info:
+  title: Bumbeelabs Rest API
+  description: 
+    Bumbeelabs REST API is a web service offering access to Bumbeelabs resources such as installation management and visit statistics for building own analytics solutions or programmatically transferring information to your systems.
+
+version: "2.0"
+externalDocs:
+  description: Official documentation
+  url: https://api.bumbeelabs.com/docs
+servers:
+- url: https://api.bumbeelabs.com/v2
+  description: API server
+tags:
+- name: Authorization
+  description: Authentication required to make requests via our API.
+- name: Demo
+  description: "Configured with a demo installation, so anyone can use it and test the API"
+- name: Installations
+  description: Installations are locations/properties with installed Bumbeelabs devices and configured into areas of interests.
+- name: Statistics
+  description: Statistics can be retrieved for both installations and visit classes.
+- name: Flows
+  description: Working with the API starts with authenticating by obtaining an access_token which should be later passed in Authorization header for each request.
+- name: Presence
+  description: Presence can be used for understanding the density of visitors in an area.
+- name: Turnover
+  description: Installation sales data. Allows uploading and retrieving turnover information for given range.
+
+paths:
+  /auth:
+    post:
+      tags:
+      - Authorization
+      summary: Authenticates a user.
+      description: Working with the API starts with authenticating by obtaining an ```access_token``` which should be later passed in Authorization header for each request.
+      operationId: postAuth
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientLogin'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthOk'
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthFail'
+  /installations:
+    get:
+      tags:
+      - Installations
+      summary: Installation list
+      description: Lists all installation user has access to.
+      parameters: []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Installation'
+      security:
+      - jwt: []
+  /installations/{id}:
+    get:
+      tags:
+      - Installations
+      summary: Installation details
+      description: ""
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstallationDetails'
+        "404":
+          description: Content not found
+      security:
+      - jwt: []
+  /installations/{id}/stats:
+    get:
+      tags:
+      - Statistics
+      summary: Returns visit stats for this installation.
+      description: ""
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int32
+      - name: start_time
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date-time
+      - name: end_time
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date-time
+      - name: interval
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - 1h
+          - 1d
+          - 1w
+          - 1mon
+      - name: visit_count_type
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: presence
+          enum:
+          - presence
+          - start_only
+      - name: average_length_type
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: starts
+          enum:
+          - starts
+          - within
+          - accumulated
+          - start_only
+      - name: dwell_time_type
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: default
+          enum:
+          - active
+          - default
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InstallationStats'
+        "404":
+          description: Content not found
+      security:
+      - jwt: []
+  /installations/{id}/stats/{area_id}:
+    get:
+      tags:
+      - Statistics
+      summary: Specific visit class stats.
+      description: ""
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int32
+      - name: area_id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int32
+      - name: start_time
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date-time
+      - name: end_time
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date-time
+      - name: interval
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - 1h
+          - 1d
+          - 1w
+          - 1mon
+      - name: visit_count_type
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: presence
+          enum:
+          - presence
+          - start_only
+      - name: average_length_type
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: starts
+          enum:
+          - starts
+          - within
+          - accumulated
+          - start_only
+      - name: dwell_time_type
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: default
+          enum:
+          - active
+          - default
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AreaStats'
+        "404":
+          description: Content not found
+      security:
+      - jwt: []
+  /installations/{id}/flows:
+    get:
+      tags:
+      - Flows
+      summary: Visit flow between areas of this installation.
+      description: ""
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int32
+      - name: start_time
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date-time
+      - name: end_time
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date-time
+      - name: interval
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - 1h
+          - 1d
+          - 1w
+          - 1mon
+      - name: visit_count_type
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: presence
+          enum:
+          - presence
+          - start_only
+      - name: average_length_type
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: starts
+          enum:
+          - starts
+          - within
+          - accumulated
+          - start_only
+      - name: dwell_time_type
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: default
+          enum:
+          - active
+          - default
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InstallationFlows'
+        "404":
+          description: Content not found
+      security:
+      - jwt: []
+  /installations/{id}/presence:
+    get:
+      tags:
+      - Presence
+      summary: Installation presence
+      description: |-
+        Returns a list of areas (visit classes) with `count` as a number
+        of unique devices at the area for the past `minutes` (default 1).
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int32
+      - name: minutes
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          maximum: 5
+          minimum: 1
+          type: integer
+          default: 1
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Presence'
+        "404":
+          description: Content not found
+      security:
+      - jwt: []
+  /presence:
+    get:
+      tags:
+      - Presence
+      summary: Cumulative presence from all installations
+      description: |-
+        Returns a list of areas (visit classes) with `count` as a number
+        of unique devices at the area for the past `minutes` (default 1).
+      parameters:
+      - name: minutes
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          maximum: 5
+          minimum: 1
+          type: integer
+          default: 1
+      - name: page
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          minimum: 1
+          type: integer
+          default: 1
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresenceResult'
+      security:
+      - jwt: []
+  /public:
+    get:
+      tags:
+      - Demo
+      summary: List of Demo installations
+      description: ""
+      parameters: []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Installation'
+  /public/{id}:
+    get:
+      tags:
+      - Demo
+      summary: Demo installation details
+      description: ""
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstallationDetails'
+  /public/{id}/stats:
+    get:
+      tags:
+      - Demo
+      summary: Demo installation statistics
+      description: ""
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int32
+      - name: start_time
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date-time
+      - name: end_time
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date-time
+      - name: interval
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - 1h
+          - 1d
+          - 1w
+          - 1mon
+      - name: visit_count_type
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: presence
+          enum:
+          - presence
+          - start_only
+      - name: average_length_type
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: starts
+          enum:
+          - starts
+          - within
+          - accumulated
+          - start_only
+      - name: dwell_time_type
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: default
+          enum:
+          - active
+          - default
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InstallationStats'
+  /installations/{id}/turnover:
+    get:
+      tags:
+      - Turnover
+      summary: Return list of turnover records.
+      description: ""
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int32
+      - name: range
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - day
+          - month
+      - name: start
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date
+      - name: end
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Turnover'
+        "404":
+          description: Content not found
+      security:
+      - jwt: []
+    post:
+      tags:
+      - Turnover
+      summary: Add a turnover record.
+      description: ""
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Turnover'
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Turnover'
+        "404":
+          description: Content not found
+      security:
+      - jwt: []
+components:
+  schemas:
+    Area:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        comment:
+          type: string
+        parent_id:
+          type: integer
+          readOnly: true
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/Label'
+        criteria:
+          $ref: '#/components/schemas/VisitClassCriteria'
+        polygon:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/AreaNode'
+    AreaNode:
+      required:
+      - first_post_time
+      type: object
+      properties:
+        name:
+          type: string
+        mac_address:
+          type: string
+          example: 00:11:22:AA:BB:CC
+        rssi_threshold:
+          type: string
+        position:
+          type: array
+          items:
+            type: number
+        first_post_time:
+          type: string
+          format: date-time
+    AreaStats:
+      type: object
+      properties:
+        time:
+          type: string
+          format: date-time
+        visit_count:
+          type: integer
+        average_length:
+          type: integer
+          x-unit: seconds
+        dwell_ranges:
+          type: array
+          items:
+            $ref: '#/components/schemas/BucketStats'
+    AuthFail:
+      type: object
+      properties:
+        message:
+          type: string
+    AuthOk:
+      type: object
+      properties:
+        access_token:
+          type: string
+    BucketStats:
+      type: object
+      properties:
+        key:
+          type: string
+        visit_count:
+          type: integer
+        from:
+          type: integer
+        to:
+          type: integer
+    ClassStats:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        visit_count:
+          type: integer
+        average_length:
+          type: integer
+          x-unit: seconds
+    ClientLogin:
+      required:
+      - password
+      - username
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    FlowStats:
+      type: object
+      properties:
+        from:
+          type: integer
+        to:
+          type: integer
+        count:
+          type: integer
+    Installation:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+        main_area_id:
+          type: integer
+        timezone:
+          type: string
+          example: Europe/Stockholm
+        features:
+          type: array
+          items:
+            type: string
+    InstallationDetails:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+        main_area_id:
+          type: integer
+        timezone:
+          type: string
+          example: Europe/Stockholm
+        features:
+          type: array
+          items:
+            type: string
+        areas:
+          type: array
+          items:
+            $ref: '#/components/schemas/Area'
+        segments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Segment'
+    InstallationFlows:
+      type: object
+      properties:
+        time:
+          type: string
+          format: date-time
+        flows:
+          type: array
+          items:
+            $ref: '#/components/schemas/FlowStats'
+    InstallationStats:
+      type: object
+      properties:
+        time:
+          type: string
+          format: date-time
+        areas:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClassStats'
+    Label:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    OpeningHours:
+      type: object
+      properties:
+        monday:
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/TimeRange'
+        tuesday:
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/TimeRange'
+        wednesday:
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/TimeRange'
+        thursday:
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/TimeRange'
+        friday:
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/TimeRange'
+        saturday:
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/TimeRange'
+        sunday:
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/TimeRange'
+    Presence:
+      required:
+      - count
+      - id
+      - name
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        count:
+          type: integer
+        nodes:
+          type: object
+          additionalProperties:
+            type: number
+    PresenceMultiple:
+      required:
+      - count
+      - id
+      - installation_id
+      - name
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        count:
+          type: integer
+        nodes:
+          type: object
+          additionalProperties:
+            type: number
+        installation_id:
+          type: integer
+    PresenceResult:
+      required:
+      - next
+      - total
+      type: object
+      properties:
+        total:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PresenceMultiple'
+        next:
+          type: string
+    Segment:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        comment:
+          type: string
+        parent_id:
+          type: integer
+          readOnly: true
+        labels:
+          type: array
+          items:
+            $ref: '#/components/schemas/Label'
+        criteria:
+          $ref: '#/components/schemas/VisitClassCriteria'
+    TimeRange:
+      type: object
+      properties:
+        start_time:
+          type: string
+          nullable: true
+        end_time:
+          type: string
+          nullable: true
+    Turnover:
+      required:
+      - date
+      - range
+      - turnover_exc_vat
+      - turnover_inc_vat
+      type: object
+      properties:
+        range:
+          type: string
+          enum:
+          - day
+          - month
+        date:
+          type: string
+          format: date
+        turnover_inc_vat:
+          type: number
+        turnover_exc_vat:
+          type: number
+        comment:
+          type: string
+    VisitClassCriteria:
+      type: object
+      properties:
+        minimum_dwell_time:
+          type: string
+          nullable: true
+          example: 00:05:00
+        maximum_dwell_time:
+          type: string
+          nullable: true
+          example: 03:00:00
+        active_split_time:
+          type: string
+          nullable: true
+        split_time:
+          type: string
+          nullable: true
+        floors:
+          type: array
+          nullable: true
+          items:
+            type: integer
+        opening_hours:
+          $ref: '#/components/schemas/OpeningHours'
+      additionalProperties: true
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
